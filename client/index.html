@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang='en'>
+	<head>
+		<meta charset="utf-8">
+		<link rel="stylesheet" href="css/reset.css" />
+		<link rel="stylesheet" href="css/style.css" />
+		<script src="js/socket.io.min.js" ></script>
+		<script src="js/jquery.min.js" ></script>
+		<script src="js/modernizr.min.js" ></script>
+	</head>
+	<body>
+	
+		<section id="chat-screen" class="screen">
+			<textarea id="chat-content" readonly="readonly"></textarea>
+			<input id="chat-message" type="text"/>
+		</section>
+		
+		<section id="login-screen" class="screen">
+			<form id="login-form">
+				<img src="/img/logo.gif" class="centered" alt="ImJS Logo"/>
+				<p>
+					<label for="username">Username: </label>
+					<input id="username" type="text"/>
+				</p>
+				<p>
+					<label for="password">Password: </label>
+					<input id="password" type="password"/>
+				</p>
+				<p>
+					<button id="connect" value="Connect">Connect</button>
+					<button id="create" value="Create">Create</button>
+				</p>
+			</form>
+		</section>
+		
+		<script src="js/blockui.jquery.min.js"></script>	
+		<script>
+			var socket = io.connect('http://localhost:5000/chat'),
+				$chatScreen = $('#chat-screen'),
+				$input = $('#chat-message', $chatScreen),
+				$output = $('#chat-content', $chatScreen),
+				$loginScreen = $('#login-screen'),
+				$loginForm = $('#login-form', $loginScreen),
+				$username = $('#username', $loginForm),
+				$password = $('#password', $loginForm),
+				$connect = $('#connect', $loginForm),
+				$create = $('#create', $loginForm),
+				$window = $(window),
+				user;
+				
+			var switchScreen = function(old, next, callback){
+				old.hide('fast', function(){
+					next.show('fast', function(){
+						if (callback) callback();
+					});
+				});
+			}
+			
+			var addText = function(text){
+				$output.val($output.val() + text);
+				$output.scrollTop($output.height());
+			}
+			
+			var setupChatScreen = function(){
+				$input.keydown(function(e){
+					if (e.which == 13 && $input.val()){
+						socket.emit('msg', $input.val());
+						addText(user.name + ': ' + $input.val() + '\n');
+						$input.val('');
+						return false;
+					}
+				});
+				
+				$output.keydown(function(e){
+					var event = jQuery.Event('keydown');
+					event.which = e.which;
+					$input.focus().trigger(event);
+				});
+				
+				$input.focus();
+			}
+			
+			var setupLoginScreen = function(){
+				$username.keydown(function(e){
+					if (e.which === 13){
+						if ($password.val() === ''){
+							$password.focus();
+						} else {
+							$connect.click();
+						}
+						return false;
+					}
+				});
+				
+				$password.keydown(function(e){
+					if (e.which === 13){
+						$connect.click();
+						return false;
+					}
+				});
+				
+				$connect.click(function(){
+					if ($username.val() !== '' && $password.val() !== ''){
+						$loginForm.block({ message: null });
+						socket.emit('login', {username: $username.val(), password: $password.val()});
+					}
+					return false;
+				});
+				
+				$create.click(function(){
+					if ($username.val() !== '' && $password.val() !== ''){
+						$loginForm.block({ message: null });
+						socket.emit('create', {username: $username.val(), password: $password.val()});
+					}
+					return false;
+				});
+				
+				$username.focus();
+			}
+			
+			socket.on('msg', function(data){
+				addText(data);
+			});
+			
+			socket.on('login-error', function(data){
+				$loginForm.unblock();
+			});
+			
+			socket.on('create-error', function(data){
+				$loginForm.unblock();
+			});
+			
+			socket.on('create-success', function(data){
+				$loginForm.unblock();
+				console.log('Successful.');
+			});
+			
+			socket.on('login-success', function(data){
+				user = data;
+				$loginForm.unblock();
+				switchScreen($loginScreen, $chatScreen, setupChatScreen);
+			});
+			
+			$output.height($window.height() - 50);
+			
+			$window.resize(function(){
+				$output.height($window.height() - 50);
+			});
+			
+			setupLoginScreen();
+			
+		</script>
+	</body>
+</html>
