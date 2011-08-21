@@ -15,28 +15,14 @@ Install
 
   1. The source code for the application must be placed in a sub-directory of the Node install path as it makes use of the node_modules folder (if the packages are installed using a package manager)
   2. A configuration file must  be created for the MongoDB server in order to specify the database location. In order to do this, create a mongo.config file with the following content
- 
-   _On windows_:
-   ```
-   dbpath=<path to node-imjs install>server\data
-   ```
 
-   _On linux/mac_: 
-   ```
-   dbpath=<path to node-imjs install>server/data
-   ```
+     _On windows_: `dbpath=<path to node-imjs install>server\data`
+   
+     _On linux/mac_: `dbpath=<path to node-imjs install>server/data`
 
-  3. Start the MongoDB server by running:
+  3. Start the MongoDB server by running: `mongod --config mongo.config`
 
-   ```
-   mongod --config mongo.config
-   ```
-
-  4. Start the Node.js server by switching to the server directory and running
-
-   ```
-   node server.js
-   ```
+  4. Start the Node.js server by switching to the server directory and running `node server.js`
 
   5. Transfer the files in the client folder to your web server's directory, and you can now access the client application, where you can create an account and connect to the chatroom.
 
@@ -44,3 +30,4 @@ Notes
 ---
 
   - In the server folder, a _config.js_ file is present where you may modify application settings such as the port on which the chat server runs and the name of the MongoDB collection to use.
+  
